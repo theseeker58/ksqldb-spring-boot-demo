@@ -3,7 +3,7 @@
 ### Preliminary steps
 
 1. Start docker desktop
-1. In a terminal from the root directory of the project run `docker compose -f .\docker-compose.yml -p ksqldb-demo up -d`
+1. In a terminal from the root directory of the project run `docker compose -f ./docker-compose.yml -p ksqldb-demo up -d`
 1. Once all the containers are up and running execute the command  `docker exec broker kafka-topics --bootstrap-server broker:29092 --create --topic messages-avro-topic` to create the kafka topic
 1. Run `docker exec -it schema-registry bash`
 1. The prompt [appuser@schema-registry ~]$ comes up
@@ -26,7 +26,7 @@
 ### Run the web application
 1. Start the application running the command `./mvnw spring-boot:run`
 1. Open a new terminal and run `curl -v http://localhost:8080`; you will get 3 records previously published to the topic
-1. Execute the command `docker compose -f .\docker-compose.yml -p ksqldb-demo stop` if you want to reuse generated sample data or `docker compose -f .\docker-compose.yml -p ksqldb-demo down` if you don't need to
+1. Execute the command `docker compose -f ./docker-compose.yml -p ksqldb-demo stop` if you want to reuse generated sample data or `docker compose -f ./docker-compose.yml -p ksqldb-demo down` if you don't need to
 
 
 
