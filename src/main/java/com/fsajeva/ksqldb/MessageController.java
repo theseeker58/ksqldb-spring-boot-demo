@@ -43,7 +43,6 @@ public class MessageController {
         return map(resultRows);
     }
     @GetMapping("/message/{sender}/{sequence}")
-    //public Message findOne(@PathVariable String sender, @PathVariable String sequence) throws ExecutionException, InterruptedException {
     public ResponseEntity<Message> findOne(@PathVariable String sender, @PathVariable String sequence) throws ExecutionException, InterruptedException {
         ksqlClient.define("sender", sender);
         ksqlClient.define("sequence", sequence);
