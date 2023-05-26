@@ -1,5 +1,9 @@
 package com.fsajeva.ksqldb;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.confluent.ksql.api.client.BatchedQueryResult;
 import io.confluent.ksql.api.client.Client;
 import io.confluent.ksql.api.client.Row;
@@ -22,7 +26,7 @@ public class MessageController {
     }
 
     @GetMapping("/")
-    public List<Message> findAll() throws ExecutionException, InterruptedException {
+    public List<Message> findAll() throws ExecutionException, InterruptedException, JsonProcessingException {
         String pullQuery = "SELECT * FROM MESSAGES;";
         BatchedQueryResult batchedQueryResult = ksqlClient.executeQuery(pullQuery);
         List<Row> resultRows = batchedQueryResult.get();
@@ -34,7 +38,7 @@ public class MessageController {
     }
 
     @GetMapping("/messages/{sender}/{sequence}")
-    public List<Message> findByKey(@PathVariable String sender, @PathVariable String sequence) throws ExecutionException, InterruptedException {
+    public List<Message> findByKey(@PathVariable String sender, @PathVariable String sequence) throws ExecutionException, InterruptedException, JsonProcessingException {
         ksqlClient.define("sender", sender);
         ksqlClient.define("sequence", sequence);
         String pullQuery = "SELECT * FROM MESSAGES WHERE SENDER = '${sender}' AND SEQUENCE ='${sequence}';";
@@ -43,7 +47,7 @@ public class MessageController {
         return map(resultRows);
     }
     @GetMapping("/message/{sender}/{sequence}")
-    public ResponseEntity<Message> findOne(@PathVariable String sender, @PathVariable String sequence) throws ExecutionException, InterruptedException {
+    public ResponseEntity<Message> findOne(@PathVariable String sender, @PathVariable String sequence) throws ExecutionException, InterruptedException, JsonProcessingException {
         ksqlClient.define("sender", sender);
         ksqlClient.define("sequence", sequence);
         String pullQuery = "SELECT * FROM MESSAGES WHERE SENDER = '${sender}' AND SEQUENCE ='${sequence}';";
@@ -58,19 +62,20 @@ public class MessageController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
-    private List<Message> map(List<Row> resultRows) {
+    private List<Message> map(List<Row> resultRows) throws JsonProcessingException {
         List<Message> messages = new ArrayList<>();
         for (Row row : resultRows) {
             messages.add(map(row));
         }
         return messages;
     }
-    private Message map(Row row) {
-        Message message = new Message();
-        message.setSender(row.getString("SENDER"));
-        message.setSequence(row.getString("SEQUENCE"));
-        message.setText(row.getString("TEXT"));
-        return message;
+    private Message map(Row row) throws JsonProcessingException {
+        String json = row.asObject().toJsonString();
+        ObjectMapper mapper = JsonMapper
+                .builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+                .build();
+        return mapper.readValue(json, Message.class);
     }
 
 }
