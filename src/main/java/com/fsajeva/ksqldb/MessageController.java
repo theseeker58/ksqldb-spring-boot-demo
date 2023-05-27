@@ -36,30 +36,33 @@ public class MessageController {
         }
         return map(resultRows);
     }
-
+    //Restituisce una lista di messaggi, data una chiave
     @GetMapping("/messages/{sender}/{sequence}")
     public List<Message> findByKey(@PathVariable String sender, @PathVariable String sequence) throws ExecutionException, InterruptedException, JsonProcessingException {
-        ksqlClient.define("sender", sender);
-        ksqlClient.define("sequence", sequence);
-        String pullQuery = "SELECT * FROM MESSAGES WHERE SENDER = '${sender}' AND SEQUENCE ='${sequence}';";
-        BatchedQueryResult batchedQueryResult = ksqlClient.executeQuery(pullQuery);
-        List<Row> resultRows = batchedQueryResult.get();
+        List<Row> resultRows = findMessages(sender, sequence);
         return map(resultRows);
     }
+
+    //Restituisce un messaggio, data una chiave
     @GetMapping("/message/{sender}/{sequence}")
     public ResponseEntity<Message> findOne(@PathVariable String sender, @PathVariable String sequence) throws ExecutionException, InterruptedException, JsonProcessingException {
-        ksqlClient.define("sender", sender);
-        ksqlClient.define("sequence", sequence);
-        String pullQuery = "SELECT * FROM MESSAGES WHERE SENDER = '${sender}' AND SEQUENCE ='${sequence}';";
-        BatchedQueryResult batchedQueryResult = ksqlClient.executeQuery(pullQuery);
-        List<Row> resultRows = batchedQueryResult.get();
         Message message = null;
+        List<Row> resultRows = findMessages(sender, sequence);
         if (resultRows.size() == 1) {
             Row row = resultRows.get(0);
             message = map(row);
             return ResponseEntity.ok().body(message);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+
+    private List<Row> findMessages(String sender, String sequence) throws ExecutionException, InterruptedException {
+        ksqlClient.define("sender", sender);
+        ksqlClient.define("sequence", sequence);
+        String pullQuery = "SELECT * FROM MESSAGES WHERE SENDER = '${sender}' AND SEQUENCE ='${sequence}';";
+        BatchedQueryResult batchedQueryResult = ksqlClient.executeQuery(pullQuery);
+        return batchedQueryResult.get();
+
     }
 
     private List<Message> map(List<Row> resultRows) throws JsonProcessingException {

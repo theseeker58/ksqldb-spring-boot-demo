@@ -28,6 +28,7 @@
 1. Open a new terminal and run `curl -v http://localhost:8080`; you will get 3 records previously published to the topic
 1. Execute the command `docker compose -f ./docker-compose.yml -p ksqldb-demo stop` if you want to reuse generated sample data or `docker compose -f ./docker-compose.yml down` if you don't need to
 
+./mvnw native:compile -Pnative -DskipTests
 
 
 
